@@ -17,13 +17,19 @@ Go to [teachablemachine.withgoogle.com](https://teachablemachine.withgoogle.com/
 
 ---
 
-## 🏷️ Step 2: Define Your Classes
-DoseWise expects **EXACT** names for the classes to recognize them. Create these four classes:
+## 🏷️ Step 2: Define Your Classes (PS 45 Alignment)
+To perfectly align with the challenge requirements and the App's logic, create exactly these **five** classes:
 
-1.  **Class 1**: `pill_morning`
-2.  **Class 2**: `pill_evening`
-3.  **Class 3**: `no_pill`
-4.  **Class 4**: `multiple_pills`
+1.  **Class 1**: `pill_morning` (e.g., White Round Pill)
+2.  **Class 2**: `pill_afternoon` (e.g., Red Capsule)
+3.  **Class 3**: `pill_evening` (e.g., Blue Capsule)
+4.  **Class 4**: `no_pill` (Empty hand/Background)
+5.  **Class 5**: `multiple_pills` (Safety check)
+
+> [!IMPORTANT]
+> Use these exact lowercase names! The system uses these names to log your adherence automatically.
+
+
 
 ---
 
@@ -41,8 +47,7 @@ DoseWise expects **EXACT** names for the classes to recognize them. Create these
 
 ### Class: `pill_evening`
 - Repeat the process with your evening pill/capsule.
-- Record about 500 samples.
-
+- Record about 500 sample
 ### Class: `multiple_pills`
 - Hold two or more pills in your hand.
 - Record about 200 samples.

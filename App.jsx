@@ -29,6 +29,7 @@ const DoseWiseApp = () => {
     const DETECTION_FREQUENCY = 500;
     const PILL_TYPES = {
         MORNING: "pill_morning",
+        AFTERNOON: "pill_afternoon",
         EVENING: "pill_evening"
     };
 
@@ -60,7 +61,7 @@ const DoseWiseApp = () => {
                 totalPillsScheduled: parsed.totalPillsScheduled || 0
             });
         } else {
-            // DEMO: Pre-populate for presentation
+            // DEMO: Pre-populate for presentation (Aligned to 3-pill requirement)
             const mockData = {
                 adherenceLog: generateMockAdherence(),
                 currentStreak: 5,
@@ -82,11 +83,13 @@ const DoseWiseApp = () => {
             history.push({
                 date: dateStr,
                 morning: { scheduled: "08:00", taken: i % 3 === 0 ? null : "08:15", pillType: PILL_TYPES.MORNING },
+                afternoon: { scheduled: "14:00", taken: i % 5 === 0 ? null : "14:10", pillType: PILL_TYPES.AFTERNOON },
                 evening: { scheduled: "20:00", taken: i % 4 === 0 ? null : "20:30", pillType: PILL_TYPES.EVENING }
             });
         }
         return history;
     };
+
 
     const setupWebcam = async () => {
         try {
@@ -191,12 +194,16 @@ const DoseWiseApp = () => {
         const now = new Date();
         const currentHour = now.getHours();
 
-        // Define windows: Morning (7-9 AM), Evening (7-9 PM)
+        // Define windows: Morning (7-9 AM), Afternoon (13-15 PM), Evening (19-21 PM)
         const isMorningWindow = currentHour >= 7 && currentHour <= 9;
+        const isAfternoonWindow = currentHour >= 13 && currentHour <= 15;
         const isEveningWindow = currentHour >= 19 && currentHour <= 21;
 
         if (detectedPill === PILL_TYPES.MORNING) {
             return { isValid: isMorningWindow, type: 'morning' };
+        }
+        if (detectedPill === PILL_TYPES.AFTERNOON) {
+            return { isValid: isAfternoonWindow, type: 'afternoon' };
         }
         if (detectedPill === PILL_TYPES.EVENING) {
             return { isValid: isEveningWindow, type: 'evening' };
@@ -250,6 +257,7 @@ const DoseWiseApp = () => {
             const newDay = {
                 date: today,
                 morning: { scheduled: "08:00", taken: type === 'morning' ? takenTime : null, pillType: pillName },
+                afternoon: { scheduled: "14:00", taken: type === 'afternoon' ? takenTime : null, pillType: pillName },
                 evening: { scheduled: "20:00", taken: type === 'evening' ? takenTime : null, pillType: pillName }
             };
             newLog.push(newDay);
@@ -279,7 +287,7 @@ const DoseWiseApp = () => {
         for (let day of sorted) {
             // A "perfect" day is when both (if defined) or at least one (if only one scheduled) is taken
             // For this logic, we'll keep it simple: any dose taken counts towards the streak of "checking in"
-            if (day.morning?.taken || day.evening?.taken) {
+            if (day.morning?.taken || day.afternoon?.taken || day.evening?.taken) {
                 streak++;
             } else {
                 break;
@@ -321,12 +329,16 @@ const DoseWiseApp = () => {
         const today = now.toISOString().split('T')[0];
         const log = adherenceLog.find(l => l.date === today);
 
-        // Reminder 15 mins after: 8:15 AM and 8:15 PM
+        // Reminder 15 mins after: 8:15 AM, 2:15 PM and 8:15 PM
         const isMorningReminderTime = now.getHours() === 8 && now.getMinutes() === 15;
+        const isAfternoonReminderTime = now.getHours() === 14 && now.getMinutes() === 15;
         const isEveningReminderTime = now.getHours() === 20 && now.getMinutes() === 15;
 
         if (isMorningReminderTime && (!log || !log.morning.taken)) {
             sendNotification("morning");
+        }
+        if (isAfternoonReminderTime && (!log || !log.afternoon.taken)) {
+            sendNotification("afternoon");
         }
         if (isEveningReminderTime && (!log || !log.evening.taken)) {
             sendNotification("evening");
@@ -346,7 +358,7 @@ const DoseWiseApp = () => {
     const Dashboard = () => {
         const today = new Date().toISOString().split('T')[0];
         const todayLog = adherenceLog.find(l => l.date === today) || {
-            morning: { taken: null }, evening: { taken: null }
+            morning: { taken: null }, afternoon: { taken: null }, evening: { taken: null }
         };
 
         const adherenceRate = stats.totalPillsScheduled > 0
@@ -364,6 +376,15 @@ const DoseWiseApp = () => {
                         </div>
                         <span className={`status-badge ${todayLog.morning.taken ? 'status-taken' : 'status-pending'}`}>
                             {todayLog.morning.taken ? `✓ Taken ${todayLog.morning.taken}` : '⏱ Pending'}
+                        </span>
+                    </div>
+                    <div className={`schedule-item ${todayLog.afternoon.taken ? 'taken' : 'pending'}`}>
+                        <div>
+                            <strong>Afternoon Dose</strong>
+                            <div style={{ fontSize: '0.85rem', color: '#666' }}>2:00 PM • Red Pill</div>
+                        </div>
+                        <span className={`status-badge ${todayLog.afternoon.taken ? 'status-taken' : 'status-pending'}`}>
+                            {todayLog.afternoon.taken ? `✓ Taken ${todayLog.afternoon.taken}` : '⏱ Pending'}
                         </span>
                     </div>
                     <div className={`schedule-item ${todayLog.evening.taken ? 'taken' : 'pending'}`}>
@@ -477,6 +498,31 @@ const DoseWiseApp = () => {
                         <div className="video-container">
                             <video ref={videoRef} autoPlay playsInline muted></video>
                             <canvas id="detection-canvas" ref={canvasRef} width="640" height="480" alt="Webcam detection overlay"></canvas>
+
+                            {/* Prominent Detection Overlay */}
+                            {isDetecting && prediction.label !== 'no_pill' && (
+                                <div style={{
+                                    position: 'absolute',
+                                    bottom: '20px',
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    background: 'rgba(0, 0, 0, 0.7)',
+                                    color: 'white',
+                                    padding: '10px 20px',
+                                    borderRadius: '30px',
+                                    fontSize: '1.2rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    border: `2px solid ${checkPillValidity(prediction.label).isValid ? '#00AA66' : '#FFCC00'}`,
+                                    backdropFilter: 'blur(4px)',
+                                    zIndex: 10
+                                }}>
+                                    <span>🔍</span>
+                                    <strong>{prediction.label.replace(/_/g, ' ')}</strong>
+                                    <span style={{ opacity: 0.8, fontSize: '0.9rem' }}>{(prediction.confidence * 100).toFixed(0)}% Match</span>
+                                </div>
+                            )}
                         </div>
 
 
@@ -497,11 +543,16 @@ const DoseWiseApp = () => {
                                 </button>
                             )}
 
-                            {/* DEMO: Test mode button to simulate pill detection */}
+                            {/* DEMO: Test mode buttons to simulate pill detection (Aligned to 3-pill) */}
                             <button className="btn-secondary"
                                 onClick={() => handleDetection(PILL_TYPES.MORNING, 0.98)}
                                 aria-label="Test Morning Pill">
                                 🧪 Test Morning
+                            </button>
+                            <button className="btn-secondary"
+                                onClick={() => handleDetection(PILL_TYPES.AFTERNOON, 0.98)}
+                                aria-label="Test Afternoon Pill">
+                                🧪 Test Afternoon
                             </button>
                             <button className="btn-secondary"
                                 onClick={() => handleDetection(PILL_TYPES.EVENING, 0.98)}
