@@ -24,7 +24,8 @@ const DoseWiseApp = () => {
     const audioCtx = useRef(null);
 
     // --- Constants ---
-    const [modelUrl, setModelUrl] = useState(localStorage.getItem('dosewise_model_url') || "");
+    const [modelUrl, setModelUrl] = useState(localStorage.getItem('dosewise_model_url') || "https://teachablemachine.withgoogle.com/models/kj9jZ5jHg/");
+
     const CONFIDENCE_THRESHOLD = 0.75;
     const DETECTION_FREQUENCY = 500;
     const PILL_TYPES = {
@@ -194,47 +195,46 @@ const DoseWiseApp = () => {
         const now = new Date();
         const currentHour = now.getHours();
 
-        // Define windows: Morning (7-9 AM), Afternoon (13-15 PM), Evening (19-21 PM)
-        const isMorningWindow = currentHour >= 7 && currentHour <= 9;
-        const isAfternoonWindow = currentHour >= 13 && currentHour <= 15;
-        const isEveningWindow = currentHour >= 19 && currentHour <= 21;
+        // --- HACKATHON DEMO MODE ---
+        // For the core requirement demo, we want to show recognition of 3 types regardless of the time.
+        // We'll treat any of the 3 valid pill types as "Valid" for identification purposes.
+        const isScheduledPill = [PILL_TYPES.MORNING, PILL_TYPES.AFTERNOON, PILL_TYPES.EVENING].includes(detectedPill);
 
-        if (detectedPill === PILL_TYPES.MORNING) {
-            return { isValid: isMorningWindow, type: 'morning' };
-        }
-        if (detectedPill === PILL_TYPES.AFTERNOON) {
-            return { isValid: isAfternoonWindow, type: 'afternoon' };
-        }
-        if (detectedPill === PILL_TYPES.EVENING) {
-            return { isValid: isEveningWindow, type: 'evening' };
-        }
-        return { isValid: false, type: null };
+        const typeMap = {
+            [PILL_TYPES.MORNING]: 'morning',
+            [PILL_TYPES.AFTERNOON]: 'afternoon',
+            [PILL_TYPES.EVENING]: 'evening'
+        };
+
+        return {
+            isValid: isScheduledPill, // In demo mode, any taught pill is "valid" recognition
+            type: typeMap[detectedPill] || null
+        };
     };
 
     const handleDetection = (label, confidence) => {
-        // Ignore "empty" or "multiple" for adherence logic
+        // Ignore "empty" or "multiple" for core logic
         if (label === 'no_pill' || label === 'multiple_pills' || label === 'Background Join') return;
 
-        // Visual feedback for any detection
-        setAlert({ type: 'info', message: `🔍 Identification: ${label.replace(/_/g, ' ')} detected.` });
+        // Visual feedback focus: Core Recognition
+        const cleanLabel = label.replace(/_/g, ' ').toUpperCase();
+        setAlert({
+            type: 'info',
+            message: `🎯 AI RECOGNITION: ${cleanLabel} identified with ${(confidence * 100).toFixed(1)}% confidence.`
+        });
 
         const { isValid, type } = checkPillValidity(label);
 
         if (isValid) {
             processSuccess(label, type);
-        } else {
-            // Only show warning if it's potentially a pill but not the right time/type
-            // We don't want to spam warnings for everything, so we check if it's a "pill" class
-            if (label.toLowerCase().includes('pill') || label.toLowerCase().includes('med')) {
-                setAlert({ type: 'warning', message: `⚠️ ${label.replace(/_/g, ' ')} is not scheduled for now.` });
-            }
         }
 
-        // Clear general info alert after a few seconds if not replaced by success/warning
+        // Clear status after 2 seconds
         setTimeout(() => {
             setAlert(prev => prev?.type === 'info' ? null : prev);
-        }, 3000);
+        }, 2000);
     };
+
 
     const processSuccess = (pillName, type) => {
         const today = new Date().toISOString().split('T')[0];

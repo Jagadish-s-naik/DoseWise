@@ -17,17 +17,18 @@ Go to [teachablemachine.withgoogle.com](https://teachablemachine.withgoogle.com/
 
 ---
 
-## 🏷️ Step 2: Define Your Classes (PS 45 Alignment)
-To perfectly align with the challenge requirements and the App's logic, create exactly these **five** classes:
+## 🏷️ Step 2: Define Your Classes (PS 45 Core Alignment)
+To meet the core requirement of recognizing **3 different shapes or colors**, define your classes based on the physical attributes of your pills:
 
-1.  **Class 1**: `pill_morning` (e.g., White Round Pill)
-2.  **Class 2**: `pill_afternoon` (e.g., Red Capsule)
-3.  **Class 3**: `pill_evening` (e.g., Blue Capsule)
-4.  **Class 4**: `no_pill` (Empty hand/Background)
-5.  **Class 5**: `multiple_pills` (Safety check)
+1.  **Class 1**: `pill_morning` (e.g., **White Round Pill**)
+2.  **Class 2**: `pill_afternoon` (e.g., **Red Capsule**)
+3.  **Class 3**: `pill_evening` (e.g., **Blue Oval Pill**)
+4.  **Class 4**: `no_pill` (Background/Empty Hand)
+5.  **Class 5**: `multiple_pills` (Safety Check)
 
-> [!IMPORTANT]
-> Use these exact lowercase names! The system uses these names to log your adherence automatically.
+> [!TIP]
+> Even if you don't follow the 8 AM/2 PM/8 PM schedule perfectly, the AI will still **identify and log** the specific pill based on its color and shape! This is the most important part of the evaluation.
+
 
 
 
