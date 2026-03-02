@@ -361,6 +361,11 @@ const DoseWiseApp = () => {
             morning: { taken: null }, afternoon: { taken: null }, evening: { taken: null }
         };
 
+        // Safety fallbacks for period objects
+        const morning = todayLog.morning || { taken: null };
+        const afternoon = todayLog.afternoon || { taken: null };
+        const evening = todayLog.evening || { taken: null };
+
         const adherenceRate = stats.totalPillsScheduled > 0
             ? ((stats.totalPillsTaken / stats.totalPillsScheduled) * 100).toFixed(0)
             : 0;
@@ -369,31 +374,31 @@ const DoseWiseApp = () => {
             <div className="dashboard-card">
                 <h2 className="card-title">💊 Medication Schedule</h2>
                 <div className="schedule-list">
-                    <div className={`schedule-item ${todayLog.morning.taken ? 'taken' : 'pending'}`}>
+                    <div className={`schedule-item ${morning.taken ? 'taken' : 'pending'}`}>
                         <div>
                             <strong>Morning Dose</strong>
                             <div style={{ fontSize: '0.85rem', color: '#666' }}>8:00 AM • White Pill</div>
                         </div>
-                        <span className={`status-badge ${todayLog.morning.taken ? 'status-taken' : 'status-pending'}`}>
-                            {todayLog.morning.taken ? `✓ Taken ${todayLog.morning.taken}` : '⏱ Pending'}
+                        <span className={`status-badge ${morning.taken ? 'status-taken' : 'status-pending'}`}>
+                            {morning.taken ? `✓ Taken ${morning.taken}` : '⏱ Pending'}
                         </span>
                     </div>
-                    <div className={`schedule-item ${todayLog.afternoon.taken ? 'taken' : 'pending'}`}>
+                    <div className={`schedule-item ${afternoon.taken ? 'taken' : 'pending'}`}>
                         <div>
                             <strong>Afternoon Dose</strong>
                             <div style={{ fontSize: '0.85rem', color: '#666' }}>2:00 PM • Red Pill</div>
                         </div>
-                        <span className={`status-badge ${todayLog.afternoon.taken ? 'status-taken' : 'status-pending'}`}>
-                            {todayLog.afternoon.taken ? `✓ Taken ${todayLog.afternoon.taken}` : '⏱ Pending'}
+                        <span className={`status-badge ${afternoon.taken ? 'status-taken' : 'status-pending'}`}>
+                            {afternoon.taken ? `✓ Taken ${afternoon.taken}` : '⏱ Pending'}
                         </span>
                     </div>
-                    <div className={`schedule-item ${todayLog.evening.taken ? 'taken' : 'pending'}`}>
+                    <div className={`schedule-item ${evening.taken ? 'taken' : 'pending'}`}>
                         <div>
                             <strong>Evening Dose</strong>
                             <div style={{ fontSize: '0.85rem', color: '#666' }}>8:00 PM • Blue Capsule</div>
                         </div>
-                        <span className={`status-badge ${todayLog.evening.taken ? 'status-taken' : 'status-pending'}`}>
-                            {todayLog.evening.taken ? `✓ Taken ${todayLog.evening.taken}` : '⏱ Pending'}
+                        <span className={`status-badge ${evening.taken ? 'status-taken' : 'status-pending'}`}>
+                            {evening.taken ? `✓ Taken ${evening.taken}` : '⏱ Pending'}
                         </span>
                     </div>
                 </div>
@@ -413,8 +418,10 @@ const DoseWiseApp = () => {
                     <h3 style={{ fontSize: '0.9rem', marginBottom: '10px' }}>LAST 7 DAYS</h3>
                     <div className="calendar-grid">
                         {adherenceLog.slice(-7).map(day => {
-                            const takenCount = (day.morning.taken ? 1 : 0) + (day.evening.taken ? 1 : 0);
-                            const statusClass = takenCount === 2 ? 'day-full' : takenCount === 1 ? 'day-partial' : 'day-none';
+                            const takenCount = (day.morning?.taken ? 1 : 0) +
+                                (day.afternoon?.taken ? 1 : 0) +
+                                (day.evening?.taken ? 1 : 0);
+                            const statusClass = takenCount === 3 ? 'day-full' : takenCount > 0 ? 'day-partial' : 'day-none';
                             return (
                                 <div key={day.date} className={`calendar-day ${statusClass}`} title={day.date}>
                                     {day.date.split('-')[2]}

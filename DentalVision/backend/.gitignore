@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Flask
+instance/
+.webassets-cache
+
+# Environment
+.env
+.env.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Models (large files)
+models/*.pt
+models/*.onnx
+*.weights
+
+# Uploads (don't commit user data)
+uploads/
+temp/
+
+# OS
+.DS_Store
+Thumbs.db

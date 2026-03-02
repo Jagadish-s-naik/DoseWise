@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DoseWise - Pill Adherence Tracking System</title>
     <meta name="description" content="AI-powered pill adherence tracking system for healthcare adherence.">
-    
+
     <!-- Libraries (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
@@ -13,17 +14,39 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
-    
+
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
+
 <body>
+    <div id="error-display"
+        style="display:none; padding: 20px; background: #fee; color: #c00; border: 1px solid #c00; margin: 20px; border-radius: 8px; font-family: sans-serif;">
+        <h2 style="margin-top:0">🚫 Application Error</h2>
+        <p id="error-message"></p>
+        <button onclick="localStorage.clear(); location.reload();"
+            style="padding: 10px; background: #c00; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Clear All Data & Reset App
+        </button>
+    </div>
     <div id="root"></div>
+
+    <script>
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            const display = document.getElementById('error-display');
+            const msgEl = document.getElementById('error-message');
+            if (display && msgEl) {
+                display.style.display = 'block';
+                msgEl.innerText = msg + '\nLine: ' + lineNo + '\n' + (error ? error.stack : '');
+            }
+            return false;
+        };
+    </script>
 
     <!-- React Application -->
     <script type="text/babel" src="App.jsx"></script>
@@ -36,4 +59,5 @@
         </div>
     </noscript>
 </body>
+
 </html>
